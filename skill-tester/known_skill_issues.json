@@ -1,0 +1,138 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-04-30",
+  "patterns": {
+    "structure": {
+      "missing_skill_md": {
+        "description": "技能目錄缺少 SKILL.md",
+        "check": "test -f <skill_path>/SKILL.md",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "無法自動修復——需要技能作者建立 SKILL.md"
+      },
+      "skill_md_no_triggers": {
+        "description": "SKILL.md 缺少觸發方式章節",
+        "regex": "## 觸發方式",
+        "check": "grep -q '## 觸發方式' SKILL.md",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "可自動生成建議的觸發關鍵字，但需要人工確認"
+      },
+      "skill_md_no_description": {
+        "description": "SKILL.md 缺少技能描述",
+        "check": "SKILL.md 少於 100 字元",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "無法自動修復——需要技能作者撰寫描述"
+      },
+      "empty_skill_directory": {
+        "description": "技能目錄存在但為空（僅有目錄無檔案）",
+        "check": "ls <skill_path> 為空",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "標記為 EMPTY_DIR 警告"
+      }
+    },
+    "trigger": {
+      "keyword_conflict": {
+        "description": "觸發關鍵字與其他技能重疊",
+        "check": "比較所有活躍技能的觸發關鍵字",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "需要人工決定優先級或修改關鍵字"
+      },
+      "keyword_too_generic": {
+        "description": "觸發關鍵字過於通用（如 'test'、'check'），容易誤觸發",
+        "regex": null,
+        "check": "關鍵字少於 5 字元或僅包含通用單字",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "建議更具體的關鍵字"
+      },
+      "untriggerable_skill": {
+        "description": "技能無法被任何已知關鍵字觸發",
+        "check": "嘗試所有定義的觸發關鍵字均失敗",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "檢查 SKILL.md 觸發方式章節格式"
+      }
+    },
+    "function": {
+      "output_mismatch": {
+        "description": "技能輸出與 SKILL.md 宣稱的輸出規範不符",
+        "check": "比較實際輸出格式與聲明的輸出格式",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "需要修改技能邏輯——無法自動修復"
+      },
+      "token_wasteful": {
+        "description": "技能輸出 token 消耗過高（efficiency_rating: wasteful）",
+        "check": "輸出 token > 輸入 token * 3 且總 token > 5000",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "建議使用 caveman 壓縮輸出"
+      },
+      "no_error_handling": {
+        "description": "技能在無效輸入時沒有適當的錯誤處理",
+        "check": "給予無效輸入，觀察是否 crash 或輸出混亂",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "需要在 SKILL.md 中加入錯誤處理指引"
+      }
+    },
+    "dependencies": {
+      "missing_python_package": {
+        "description": "技能依賴的 Python 套件未安裝",
+        "check": "pip show <package> 失敗",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "pip install <package>"
+      },
+      "missing_skill_dependency": {
+        "description": "技能依賴的其他技能不存在",
+        "check": "檢查 SKILL.md 中提到的技能是否存在於 skills/ 或 skills-archive/",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "嘗試從 skills-archive/ 恢復或從 GitHub 拉取"
+      },
+      "missing_cli_tool": {
+        "description": "技能依賴的 CLI 工具未安裝",
+        "check": "which <tool> 失敗",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "提示使用者安裝（無法自動安裝系統級工具）"
+      }
+    },
+    "evolution": {
+      "no_self_improvement": {
+        "description": "技能沒有自我改進機制（無 known_issues、evolution_log 等）",
+        "check": "檢查是否存在 known_issues.json 或 evolution_log.jsonl",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "可自動建立 known_issues.json 模板"
+      },
+      "no_version_tracking": {
+        "description": "技能沒有版本追蹤機制",
+        "check": "SKILL.md 或 known_issues.json 中無 version 欄位",
+        "first_seen": "2026-04-30",
+        "occurrences": 0,
+        "affected_skills": [],
+        "auto_fix": "在 known_issues.json 中加入 version 欄位"
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent 1 — Skill Discovery & Structure Agent Input",
+  "description": "Input schema for the Skill Discovery & Structure Agent (skill-discovery-agent)",
+  "type": "object",
+  "properties": {
+    "scan_paths": {
+      "type": "array",
+      "description": "要掃描的技能目錄路徑",
+      "items": { "type": "string" },
+      "default": ["skills/", "skills-archive/"]
+    },
+    "filter": {
+      "type": "string",
+      "description": "篩選模式",
+      "enum": ["all", "active", "archived"],
+      "default": "all"
+    },
+    "specific_skills": {
+      "type": ["array", "null"],
+      "description": "指定要測試的技能名稱清單；null 表示全部掃描",
+      "items": { "type": "string" },
+      "default": null
+    }
+  },
+  "required": ["scan_paths"]
+}

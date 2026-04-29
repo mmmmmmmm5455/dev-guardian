@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent 2 — Skill Execution & Quality Agent Input",
+  "description": "Input schema for the Skill Execution & Quality Agent (skill-execution-agent)",
+  "type": "object",
+  "properties": {
+    "execution_id": { "type": "string" },
+    "discovery_output_path": {
+      "type": "string",
+      "description": "Agent 1 的輸出 JSON 檔案路徑"
+    },
+    "design_test_cases": {
+      "type": "boolean",
+      "description": "是否自動設計測試案例",
+      "default": true
+    },
+    "token_measurement_enabled": {
+      "type": "boolean",
+      "description": "是否測量 token 消耗",
+      "default": true
+    }
+  },
+  "required": ["execution_id", "discovery_output_path"]
+}

@@ -1,0 +1,158 @@
+{
+  "version": "1.0.2",
+  "last_updated": "2026-04-30",
+  "patterns_fixed": [
+    {
+      "id": "missing_gitignore_in_subdir",
+      "repo": "multi-agent-plan/output",
+      "fix": "建立 output/.gitignore，涵蓋 *.log, pipeline.jsonl, __pycache__, .cache",
+      "date": "2026-04-30"
+    },
+    {
+      "id": "token_in_log_files",
+      "repo": "multi-agent-plan/output",
+      "fix": "pipeline.jsonl 內容已清除（未被 git 追蹤，根 .gitignore 的 logs/ 規則已攔截）",
+      "date": "2026-04-30"
+    },
+    {
+      "id": "token_in_remote_url",
+      "repo": "multi-agent-plan",
+      "fix": "remote URL 從 HTTPS+token 改為 SSH (git@github.com:...)",
+      "date": "2026-04-30"
+    },
+    {
+      "id": "token_in_curl_command",
+      "repo": "code-audit",
+      "fix": "使用 gh CLI 取代裸 curl 建立 repo；token ghp_****[REDACTED] 需手動撤銷",
+      "date": "2026-04-30",
+      "note": "自我參照：code-audit 技能自身開發過程中，curl 命令的 Authorization header 含 token 被寫入 shell transcript。經典 PAT 無法透過 API 撤銷，需在 github.com/settings/tokens 手動操作。"
+    }
+  ],
+  "patterns": {
+    "gitignore": {
+      "corrupted_file": {
+        "description": ".gitignore 超過 300 行且充斥大量重複 .tox 條目",
+        "regex": null,
+        "check": "lines > 300 AND duplicate_line_ratio > 0.5",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["browser-automation"]
+      },
+      "env_sh_committed": {
+        "description": ".env.sh 含本機絕對路徑被 commit",
+        "regex": "\\.env\\.sh$",
+        "check": "git ls-files | grep '\\.env\\.sh$'",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["video-script-extractor"]
+      },
+      "missing_in_subdir": {
+        "description": "子目錄缺少獨立 .gitignore（output/、build/、dist/ 等）",
+        "regex": null,
+        "check": "find . -maxdepth 3 -type d -not -path '*/.git/*' -not -path '*/node_modules/*' | while read d; do test -f \"$d/.gitignore\" || echo \"MISSING: $d\"; done",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["multi-agent-plan/output"],
+        "fixed": true
+      }
+    },
+    "hardcode": {
+      "flask_secret_key_hardcoded": {
+        "description": "Flask app.secret_key 直接寫死字串而非使用環境變數",
+        "regex": "app\\.secret_key\\s*=\\s*['\"](?!os\\.environ)",
+        "check": "grep -rn \"app.secret_key = \\\"\" --include='*.py'",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["ai-text-adventure"]
+      }
+    },
+    "file": {
+      "chat_exports_committed": {
+        "description": "聊天資料匯出檔案被 commit（bbs_chat_export_*.txt）",
+        "regex": "bbs_chat_export_\\d{8}_\\d{6}\\.txt",
+        "check": "git ls-files | grep 'bbs_chat_export_'",
+        "first_seen": "2026-04-30",
+        "occurrences": 5,
+        "affected_repos": ["bbs_shojo_game_LLM"]
+      },
+      "game_save_committed": {
+        "description": "遊戲存檔 JSON 被 commit（savegame.json）",
+        "regex": "savegame\\.json$",
+        "check": "git ls-files | grep 'savegame\\.json'",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["bbs_shojo_game_LLM"]
+      },
+      "game_log_committed": {
+        "description": "遊戲執行日誌被 commit（game_output.log, offline_log.txt）",
+        "regex": "(game_output\\.log|offline_log\\.txt)$",
+        "check": "git ls-files | grep -E '(game_output\\.log|offline_log\\.txt)'",
+        "first_seen": "2026-04-30",
+        "occurrences": 2,
+        "affected_repos": ["bbs_shojo_game_LLM"]
+      }
+    },
+    "git": {
+      "token_in_remote_url": {
+        "description": "Git remote URL 中嵌入 GitHub Personal Access Token",
+        "regex": "https://[a-zA-Z0-9_]+@github\\.com",
+        "check": "git remote -v | grep 'https://.*@github.com'",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["multi-agent-plan"],
+        "fixed": true
+      }
+    },
+    "secret": {
+      "ghp_token_in_files": {
+        "description": "GitHub Personal Access Token (ghp_) 出現在原始碼或設定檔中",
+        "regex": "ghp_[a-zA-Z0-9]{36}",
+        "check": "grep -rn 'ghp_' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.yml' --include='*.yaml' --include='*.json' --include='*.md' --include='*.txt'",
+        "first_seen": "2026-04-30",
+        "occurrences": 2,
+        "affected_repos": ["multi-agent-plan/output"],
+        "fixed": true
+      },
+      "token_in_log_files": {
+        "description": "GitHub token 或 API key 被寫入 pipeline/CI log 檔案",
+        "regex": "(ghp_|sk-[a-z])[a-zA-Z0-9]{20,}",
+        "check": "grep -rnE '(ghp_|sk-[a-z])[a-zA-Z0-9]{20,}' *.jsonl *.log",
+        "first_seen": "2026-04-30",
+        "occurrences": 2,
+        "affected_repos": ["multi-agent-plan/output"],
+        "fixed": true
+      },
+      "token_in_stdout_log": {
+        "description": "Agent stdout 寫入日誌時帶入 token（git remote set-url 或 env var 中含有 token）",
+        "regex": null,
+        "check": "檢查 CI/pipeline log 是否記錄了 git remote set-url 或 echo $TOKEN 的輸出",
+        "first_seen": "2026-04-30",
+        "occurrences": 2,
+        "affected_repos": ["multi-agent-plan/output"],
+        "root_cause": "execute.sh 在設定 git remote 時使用了含 token 的 HTTPS URL，該 URL 被 stdout 記錄到 pipeline.jsonl",
+        "prevention": "始終使用 SSH remote；若必須用 HTTPS token，確保不記錄到 stdout；CI log 預設應過濾 ghp_ 模式"
+      },
+      "sed_i_windows_risk": {
+        "description": "Git Bash 的 sed -i 在 Windows 上可能因 regex 引擎差異導致檔案內容全部被清空（空檔案）",
+        "regex": null,
+        "check": "不要在 Windows Git Bash 中使用 sed -i 處理含特殊 regex 的檔案。改用 perl -i 或 python 取代。",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["multi-agent-plan/output"],
+        "prevention": "Windows 上清理敏感資訊請使用：python -c \"import re; ...\" 或手動編輯"
+      },
+      "token_in_curl_command": {
+        "description": "使用 curl 呼叫 GitHub API 時，Authorization header 中的 token 被寫入 shell transcript/log",
+        "regex": "Authorization:\\s*token\\s+ghp_[a-zA-Z0-9]{36}",
+        "check": "檢查 shell transcript 或 session log 是否記錄了含 token 的 curl 命令",
+        "first_seen": "2026-04-30",
+        "occurrences": 1,
+        "affected_repos": ["code-audit"],
+        "root_cause": "建立 code-audit GitHub repo 時使用了 curl -H \"Authorization: token ghp_...\"，命令被記錄到 Claude Code session transcript",
+        "prevention": "永遠使用 gh CLI (gh repo create) 取代裸 curl 呼叫 GitHub API；gh CLI 自動管理 token 且不會在命令歷史中曝光",
+        "fixed": false,
+        "tokens_to_revoke": ["ghp_****[REDACTED — 需手動撤銷]"]
+      }
+    }
+  }
+}

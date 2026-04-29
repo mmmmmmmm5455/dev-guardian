@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent 2 — Skill Execution & Quality Agent Output",
+  "description": "Output schema for the Skill Execution & Quality Agent",
+  "type": "object",
+  "properties": {
+    "execution_id": { "type": "string" },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "skill_name": { "type": "string" },
+          "trigger_test": {
+            "type": "object",
+            "properties": {
+              "pass": { "type": "boolean" },
+              "trigger_keywords_used": { "type": "array", "items": { "type": "string" } },
+              "trigger_keywords_matched": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["pass"]
+          },
+          "function_test": {
+            "type": "object",
+            "properties": {
+              "pass": { "type": "boolean" },
+              "test_case": { "type": "string" },
+              "expected_output": { "type": "string" },
+              "actual_output": { "type": "string" },
+              "output_diff": { "type": "string" }
+            },
+            "required": ["pass"]
+          },
+          "token_usage": {
+            "type": "object",
+            "properties": {
+              "input_tokens_estimate": { "type": "integer", "minimum": 0 },
+              "output_tokens_estimate": { "type": "integer", "minimum": 0 },
+              "efficiency_rating": { "type": "string", "enum": ["good", "warning", "wasteful"] }
+            },
+            "required": ["efficiency_rating"]
+          },
+          "quality_assessment": {
+            "type": "object",
+            "properties": {
+              "clarity_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+              "accuracy_score": { "type": "integer", "minimum": 0, "maximum": 25 },
+              "conciseness_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+              "error_handling_score": { "type": "integer", "minimum": 0, "maximum": 15 },
+              "usability_score": { "type": "integer", "minimum": 0, "maximum": 20 },
+              "total_score": { "type": "integer", "minimum": 0, "maximum": 100 }
+            },
+            "required": ["total_score"]
+          }
+        },
+        "required": ["skill_name", "trigger_test", "function_test", "quality_assessment"]
+      }
+    },
+    "overall_summary": {
+      "type": "object",
+      "properties": {
+        "total_tested": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "warned": { "type": "integer" }
+      },
+      "required": ["total_tested", "passed", "failed", "warned"]
+    }
+  },
+  "required": ["execution_id", "results", "overall_summary"]
+}

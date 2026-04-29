@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent 1 — Skill Discovery & Structure Agent Output",
+  "description": "Output schema for the Skill Discovery & Structure Agent",
+  "type": "object",
+  "properties": {
+    "discovery_id": { "type": "string" },
+    "scanned_paths": { "type": "array", "items": { "type": "string" } },
+    "total_found": { "type": "integer", "minimum": 0 },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "path": { "type": "string" },
+          "has_skill_md": { "type": "boolean" },
+          "structure_errors": { "type": "array", "items": { "type": "string" } },
+          "structure_warnings": { "type": "array", "items": { "type": "string" } },
+          "structure_pass": { "type": "boolean" }
+        },
+        "required": ["name", "path", "has_skill_md", "structure_pass"]
+      }
+    }
+  },
+  "required": ["discovery_id", "scanned_paths", "total_found", "skills"]
+}

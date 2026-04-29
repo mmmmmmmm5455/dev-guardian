@@ -1,0 +1,350 @@
+{
+  "version": "1.1.0",
+  "last_updated": "2026-04-30T02:30:00",
+  "categories": {
+    "gitignore": "1. .gitignore 完整性",
+    "hardcode": "2. 硬編碼問題",
+    "config": "3. 重複設定檔",
+    "file": "4. 不該上傳的檔案",
+    "git": "5. Git 使用方式",
+    "secret": "6. 敏感資訊洩漏",
+    "frontend": "7. 前端程式碼品質",
+    "container": "8. 容器/CI 安全性"
+  },
+  "checks": [
+    {
+      "id": "GITIGNORE-001",
+      "category": "gitignore",
+      "name": ".gitignore 檔案存在",
+      "severity": "critical",
+      "check_command": "test -f .gitignore && echo PASS || echo MISSING",
+      "fix_suggestion": "建立 .gitignore，參考 GitHub 模板或本技能的推薦清單"
+    },
+    {
+      "id": "GITIGNORE-002",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 .env",
+      "severity": "high",
+      "check_command": "grep -qE '^\\.env$' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^\\.env$",
+      "fix_suggestion": "在 .gitignore 中加入 `.env`"
+    },
+    {
+      "id": "GITIGNORE-003",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 *.db / *.sqlite",
+      "severity": "high",
+      "check_command": "grep -qE '^\\*\\.db$|^\\*\\.sqlite$' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^\\*\\.(db|sqlite)$",
+      "fix_suggestion": "在 .gitignore 中加入 `*.db` 和 `*.sqlite`"
+    },
+    {
+      "id": "GITIGNORE-004",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 __pycache__",
+      "severity": "high",
+      "check_command": "grep -qE '^__pycache__/' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^__pycache__/",
+      "fix_suggestion": "在 .gitignore 中加入 `__pycache__/`"
+    },
+    {
+      "id": "GITIGNORE-005",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 *.zip / *.tar.gz",
+      "severity": "medium",
+      "check_command": "grep -qE '^\\*\\.zip$|^\\*\\.tar\\.gz$' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^\\*\\.(zip|tar\\.gz|7z|rar)$",
+      "fix_suggestion": "在 .gitignore 中加入 `*.zip`、`*.tar.gz`"
+    },
+    {
+      "id": "GITIGNORE-006",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 node_modules",
+      "severity": "high",
+      "check_command": "grep -qE '^node_modules/' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^node_modules/",
+      "fix_suggestion": "在 .gitignore 中加入 `node_modules/`"
+    },
+    {
+      "id": "GITIGNORE-007",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 *.log",
+      "severity": "medium",
+      "check_command": "grep -qE '^\\*\\.log$' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^\\*\\.log$",
+      "fix_suggestion": "在 .gitignore 中加入 `*.log`"
+    },
+    {
+      "id": "GITIGNORE-008",
+      "category": "gitignore",
+      "name": ".gitignore 檔案是否損毀",
+      "severity": "critical",
+      "check_command": "lines=$(wc -l < .gitignore 2>/dev/null); if [ \"$lines\" -gt 300 ]; then echo CORRUPTED:$lines; else echo OK:$lines; fi",
+      "description": ".gitignore 超過 300 行或內容明顯非 gitignore 格式視為損毀",
+      "fix_suggestion": "重建 .gitignore"
+    },
+    {
+      "id": "GITIGNORE-009",
+      "category": "gitignore",
+      "name": "檢查 .env 是否已被 commit",
+      "severity": "critical",
+      "check_command": "git ls-files 2>/dev/null | grep -E '\\.env$' | grep -v '\\.example$' | grep -v '\\.sample$' || echo PASS",
+      "regex": "\\.env$",
+      "fix_suggestion": "`git rm --cached .env`，加入 .gitignore，重新 commit"
+    },
+    {
+      "id": "GITIGNORE-010",
+      "category": "gitignore",
+      "name": "檢查 *.db / *.sqlite 是否已被 commit",
+      "severity": "critical",
+      "check_command": "git ls-files 2>/dev/null | grep -iE '\\.(db|sqlite)$' || echo PASS",
+      "regex": "\\.(db|sqlite)$",
+      "fix_suggestion": "`git rm --cached *.db`，加入 .gitignore，重新 commit"
+    },
+    {
+      "id": "GITIGNORE-011",
+      "category": "gitignore",
+      "name": ".gitignore 涵蓋 .checkpoints/",
+      "severity": "medium",
+      "check_command": "grep -qE '^\\.checkpoints/' .gitignore 2>/dev/null && echo PASS || echo MISSING",
+      "regex": "^\\.checkpoints/",
+      "fix_suggestion": "在 .gitignore 中加入 `.checkpoints/`（agent 檢查點目錄不該被版本控制）"
+    },
+    {
+      "id": "HARDCODE-001",
+      "category": "hardcode",
+      "name": "API Key 硬編碼",
+      "severity": "critical",
+      "check_command": "grep -rniE \"(api[_-]?key|api[_-]?token|secret[_-]?key)\\s*=\\s*['\\\"][^'\\\"]{8,}['\\\"]\" --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.yml' --include='*.yaml' --include='*.json' . 2>/dev/null || echo PASS",
+      "regex": "(api[_-]?key|api[_-]?token|secret[_-]?key)\\s*=\\s*['\"][^'\"]{8,}['\"]",
+      "fix_suggestion": "改用環境變數：`os.environ.get('API_KEY')` 或 `process.env.API_KEY`"
+    },
+    {
+      "id": "HARDCODE-002",
+      "category": "hardcode",
+      "name": "密碼硬編碼",
+      "severity": "critical",
+      "check_command": "grep -rniE \"password\\s*=\\s*['\\\"][^'\\\"]+['\\\"]\" --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.yml' --include='*.yaml' --include='*.json' . 2>/dev/null || echo PASS",
+      "regex": "password\\s*=\\s*['\"][^'\"]+['\"]",
+      "fix_suggestion": "改用環境變數或 secret manager"
+    },
+    {
+      "id": "HARDCODE-003",
+      "category": "hardcode",
+      "name": "Flask/Django secret_key 硬編碼",
+      "severity": "high",
+      "check_command": "grep -rniE \"(secret[_-]?key|SECRET_KEY)\\s*=\\s*['\\\"][^'\\\"]+['\\\"]\" --include='*.py' . 2>/dev/null || echo PASS",
+      "regex": "(secret[_-]?key|SECRET_KEY)\\s*=\\s*['\"][^'\"]+['\"]",
+      "fix_suggestion": "改用 `os.environ.get('FLASK_SECRET_KEY', 'dev-fallback')`"
+    },
+    {
+      "id": "HARDCODE-004",
+      "category": "hardcode",
+      "name": "非標準 localhost port 硬編碼",
+      "severity": "medium",
+      "check_command": "grep -rniE \"localhost:(11434|8765|8081|9000|300[0-9])\" --include='*.py' --include='*.js' --include='*.ts' --include='*.yml' --include='*.yaml' --include='*.md' . 2>/dev/null || echo PASS",
+      "regex": "localhost:(11434|8765|8081|9000|30[0-9]{2})",
+      "fix_suggestion": "改用 config 檔或環境變數管理 service URL"
+    },
+    {
+      "id": "HARDCODE-005",
+      "category": "hardcode",
+      "name": "使用者映射表硬編碼",
+      "severity": "medium",
+      "check_command": "grep -rniE \"USER_NAME_MAPPING|user_name_mapping\" --include='*.py' --include='*.js' --include='*.ts' --include='*.json' . 2>/dev/null || echo PASS",
+      "regex": "USER_NAME_MAPPING|user_name_mapping",
+      "fix_suggestion": "移到外部 config.json 或資料庫"
+    },
+    {
+      "id": "CONFIG-001",
+      "category": "config",
+      "name": "多個 requirements.txt",
+      "severity": "medium",
+      "check_command": "count=$(find . -name 'requirements*.txt' -not -path './.git/*' -not -path '*/node_modules/*' -not -path '*/venv/*' 2>/dev/null | wc -l); if [ \"$count\" -gt 1 ]; then echo DUPLICATE:$count; else echo OK:$count; fi",
+      "fix_suggestion": "統整為單一 requirements.txt 或改用 pyproject.toml"
+    },
+    {
+      "id": "CONFIG-002",
+      "category": "config",
+      "name": "pyproject.toml 與 requirements.txt 並存",
+      "severity": "low",
+      "check_command": "test -f pyproject.toml && test -f requirements.txt && echo CONFLICT || echo OK",
+      "fix_suggestion": "選擇一套依賴管理系統：Poetry/pip-tools 或純 pip"
+    },
+    {
+      "id": "CONFIG-003",
+      "category": "config",
+      "name": "多個 config 檔案散落",
+      "severity": "medium",
+      "check_command": "count=$(find . -name '*config*.py' -o -name '*config*.json' -o -name '*_config.*' 2>/dev/null | grep -v '.git/' | grep -v 'node_modules/' | grep -v 'venv/' | grep -v '__pycache__/' | wc -l); if [ \"$count\" -gt 2 ]; then echo SCATTERED:$count; else echo OK:$count; fi",
+      "fix_suggestion": "合併為統一 config 模組或使用階層式 config/"
+    },
+    {
+      "id": "FILE-001",
+      "category": "file",
+      "name": "ZIP/tar.gz 壓縮檔被 commit",
+      "severity": "critical",
+      "check_command": "git ls-files 2>/dev/null | grep -iE '\\.(zip|tar\\.gz|7z|rar)$' || echo PASS",
+      "regex": "\\.(zip|tar\\.gz|7z|rar)$",
+      "fix_suggestion": "`git rm --cached`，加入 .gitignore，改用 Git LFS 或外部儲存"
+    },
+    {
+      "id": "FILE-002",
+      "category": "file",
+      "name": "__pycache__ 被 commit",
+      "severity": "high",
+      "check_command": "git ls-files 2>/dev/null | grep '__pycache__/' || echo PASS",
+      "regex": "__pycache__/",
+      "fix_suggestion": "`git rm -r --cached **/__pycache__/`，確保 .gitignore 有 `__pycache__/`"
+    },
+    {
+      "id": "FILE-003",
+      "category": "file",
+      "name": "日誌檔被 commit",
+      "severity": "high",
+      "check_command": "git ls-files 2>/dev/null | grep -iE '(\\.log$|_log\\.txt$|game_output\\.log|offline_log\\.txt)' || echo PASS",
+      "regex": "\\.log$|_log\\.txt$|game_output\\.log|offline_log\\.txt",
+      "fix_suggestion": "`git rm --cached`，加入 .gitignore"
+    },
+    {
+      "id": "FILE-004",
+      "category": "file",
+      "name": "遊戲存檔 / 資料匯出被 commit",
+      "severity": "high",
+      "check_command": "git ls-files 2>/dev/null | grep -iE '(savegame\\.json|savefile|chat_export|sign_in_data|runtime_state)' || echo PASS",
+      "regex": "savegame\\.json|savefile|chat_export|sign_in_data|runtime_state",
+      "fix_suggestion": "`git rm --cached`，加入 .gitignore"
+    },
+    {
+      "id": "FILE-005",
+      "category": "file",
+      "name": "node_modules 被 commit",
+      "severity": "critical",
+      "check_command": "git ls-files 2>/dev/null | grep 'node_modules/' || echo PASS",
+      "regex": "node_modules/",
+      "fix_suggestion": "`git rm -r --cached node_modules/`，加入 .gitignore"
+    },
+    {
+      "id": "FILE-006",
+      "category": "file",
+      "name": ".env.sh 被 commit",
+      "severity": "high",
+      "check_command": "git ls-files 2>/dev/null | grep '\\.env\\.sh$' || echo PASS",
+      "regex": "\\.env\\.sh$",
+      "fix_suggestion": "`git rm --cached .env.sh`，改名為 .env.sh.example，加入 .gitignore"
+    },
+    {
+      "id": "GIT-001",
+      "category": "git",
+      "name": "單一 commit 缺乏開發歷史",
+      "severity": "low",
+      "check_command": "count=$(git log --oneline 2>/dev/null | wc -l); if [ \"$count\" -eq 1 ]; then echo SINGLE_COMMIT; else echo OK:$count; fi",
+      "fix_suggestion": "非緊急；之後請拆分為邏輯獨立的多個 commit"
+    },
+    {
+      "id": "GIT-002",
+      "category": "git",
+      "name": "Commit message 不含語意化前綴",
+      "severity": "low",
+      "check_command": "git log --oneline -5 2>/dev/null | grep -vE ' (feat|fix|docs|style|refactor|test|chore|ci|build|perf|revert)[:(]' | head -3 || echo OK",
+      "fix_suggestion": "使用語意化 commit：feat:/fix:/docs:/chore: 等"
+    },
+    {
+      "id": "GIT-003",
+      "category": "git",
+      "name": "大量二進位檔被 commit",
+      "severity": "high",
+      "check_command": "count=$(git ls-files 2>/dev/null | grep -iE '\\.(png|jpg|jpeg|gif|ico|exe|dll|so|dylib|bin|dat|pkl|pt|pth|h5|pb|tflite|onnx|zip|tar\\.gz|7z|rar)$' | wc -l); if [ \"$count\" -gt 10 ]; then echo BINARY_HEAVY:$count; else echo OK:$count; fi",
+      "fix_suggestion": "使用 Git LFS 管理大型二進位檔"
+    },
+    {
+      "id": "GIT-004",
+      "category": "git",
+      "name": "Git remote URL 含 token",
+      "severity": "critical",
+      "check_command": "git remote -v 2>/dev/null | grep -E 'https://[^@]+@github\\.com' || echo PASS",
+      "regex": "https://[^@]+@github\\.com",
+      "fix_suggestion": "改用 SSH remote：`git remote set-url origin git@github.com:user/repo.git`"
+    },
+    {
+      "id": "SECRET-001",
+      "category": "secret",
+      "name": "GitHub Personal Access Token (classic + fine-grained)",
+      "severity": "critical",
+      "check_command": "grep -rniE '(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{36,})' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.yml' --include='*.yaml' --include='*.json' --include='*.md' --include='*.txt' --include='*.env*' . 2>/dev/null || echo PASS",
+      "regex": "(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{36,})",
+      "fix_suggestion": "立即撤銷此 token（GitHub Settings → Developer settings → Personal access tokens），改用環境變數或 gh CLI"
+    },
+    {
+      "id": "SECRET-002",
+      "category": "secret",
+      "name": "SSH 私鑰",
+      "severity": "critical",
+      "check_command": "grep -rniE 'BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' . 2>/dev/null || echo PASS",
+      "regex": "BEGIN (RSA|OPENSSH|EC) PRIVATE KEY",
+      "fix_suggestion": "立即從 git 歷史中移除，撤銷受影響的 SSH key"
+    },
+    {
+      "id": "SECRET-003",
+      "category": "secret",
+      "name": "AWS Access Key",
+      "severity": "critical",
+      "check_command": "grep -rniE '(AKIA|ASIA)[A-Z0-9]{16}' . 2>/dev/null || echo PASS",
+      "regex": "(AKIA|ASIA)[A-Z0-9]{16}",
+      "fix_suggestion": "立即在 AWS IAM 中撤銷此 key，改用 IAM Role 或環境變數"
+    },
+    {
+      "id": "SECRET-004",
+      "category": "secret",
+      "name": "OpenAI / Anthropic API Key",
+      "severity": "critical",
+      "check_command": "grep -rniE '(sk-proj-|sk-ant-[a-zA-Z0-9]{20,})[a-zA-Z0-9_-]{20,}' --include='*.py' --include='*.js' --include='*.ts' --include='*.sh' --include='*.yml' --include='*.yaml' --include='*.json' --include='*.md' --include='*.txt' . 2>/dev/null || echo PASS",
+      "regex": "(sk-proj-|sk-ant-)[a-zA-Z0-9_-]{20,}",
+      "fix_suggestion": "立即在 API provider 後台撤銷此 key，改用環境變數"
+    },
+    {
+      "id": "SECRET-005",
+      "category": "secret",
+      "name": "資料庫連線字串含密碼",
+      "severity": "critical",
+      "check_command": "grep -rniE '(mysql|postgresql|postgres|mongodb)://[^:]+:[^@]+@' . 2>/dev/null || echo PASS",
+      "regex": "(mysql|postgresql|postgres|mongodb)://[^:]+:[^@]+@",
+      "fix_suggestion": "改用環境變數 `DATABASE_URL`，不要在 URL 中嵌入密碼"
+    },
+    {
+      "id": "SECRET-006",
+      "category": "secret",
+      "name": "curl 命令含 Authorization token",
+      "severity": "critical",
+      "check_command": "grep -rniE 'Authorization:\\s*(token|Bearer)\\s+(ghp_|github_pat_|sk-)' --include='*.jsonl' --include='*.log' --include='*.txt' --include='*.md' --include='*.sh' --include='*.py' --include='*.js' --include='*.ts' . 2>/dev/null || echo PASS",
+      "regex": "Authorization:\\s*(token|Bearer)\\s+(ghp_|github_pat_|sk-)[a-zA-Z0-9]+",
+      "fix_suggestion": "永遠使用 gh CLI 取代裸 curl 呼叫 GitHub API；若必須用 curl，透過 stdin 或環境變數傳遞 token，避免 token 出現在命令列歷史中"
+    },
+    {
+      "id": "FRONTEND-001",
+      "category": "frontend",
+      "name": "HTML img 缺少 alt 屬性",
+      "severity": "medium",
+      "check_command": "python checks/check_img_alt.py 2>/dev/null || echo 'PYTHON_CHECK_FAILED'",
+      "regex": "N/A（使用 Python HTMLParser 結構化解析）",
+      "fix_suggestion": "加入 alt=\"描述性文字\" 屬性；純裝飾性圖片可用 alt=\"\" 並加 role=\"presentation\"（WCAG 合規）"
+    },
+    {
+      "id": "CONTAINER-001",
+      "category": "container",
+      "name": "Dockerfile 使用 root 使用者或未指定 USER",
+      "severity": "high",
+      "check_command": "test -f Dockerfile && (grep -qiE '^USER root|^USER 0' Dockerfile 2>/dev/null && echo ROOT_USER || (grep -q '^USER ' Dockerfile 2>/dev/null && echo PASS || echo NO_USER_SPECIFIED)) || echo NO_DOCKERFILE",
+      "regex": "^USER (root|0)|^$（無 USER 指令）",
+      "fix_suggestion": "加入 RUN useradd --no-create-home --shell /bin/false appuser 並在 Dockerfile 末指定 USER appuser；未指定 USER 與 USER root 同等風險——容器預設以 root 執行"
+    },
+    {
+      "id": "CONTAINER-002",
+      "category": "container",
+      "name": "有 Dockerfile 但缺少 .dockerignore",
+      "severity": "medium",
+      "check_command": "test -f Dockerfile && (test -f .dockerignore && echo PASS || echo MISSING) || echo NO_DOCKERFILE",
+      "fix_suggestion": "建立 .dockerignore，至少排除 .git/、node_modules/、__pycache__/、*.log、.env*"
+    }
+  ]
+}

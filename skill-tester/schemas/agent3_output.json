@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent 3 — Skill Repair & Evolution Agent Output",
+  "description": "Output schema for the Skill Repair & Evolution Agent",
+  "type": "object",
+  "properties": {
+    "repair_id": { "type": "string" },
+    "repairs_applied": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "skill_name": { "type": "string" },
+          "issue_type": { "type": "string", "enum": ["STRUCTURE_ERROR", "TRIGGER_ERROR", "FUNCTION_ERROR", "DEPENDENCY_ERROR"] },
+          "fix_description": { "type": "string" },
+          "files_changed": { "type": "array", "items": { "type": "string" } },
+          "fix_successful": { "type": "boolean" },
+          "verification_result": { "type": "string" }
+        },
+        "required": ["skill_name", "issue_type", "fix_description", "fix_successful"]
+      }
+    },
+    "unfixable_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "skill_name": { "type": "string" },
+          "issue_type": { "type": "string" },
+          "reason": { "type": "string" },
+          "needs_human": { "type": "boolean" },
+          "human_guidance_needed": { "type": "string" }
+        },
+        "required": ["skill_name", "issue_type", "reason", "needs_human"]
+      }
+    },
+    "total_fixed": { "type": "integer" },
+    "total_unfixable": { "type": "integer" }
+  },
+  "required": ["repair_id", "repairs_applied", "unfixable_issues", "total_fixed", "total_unfixable"]
+}

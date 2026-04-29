@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Test output
+test_output/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Archives
+*.zip
+*.tar.gz
+*.7z
+
+# Environment
+.env
+.env.example
