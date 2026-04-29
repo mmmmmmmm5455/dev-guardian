@@ -25,3 +25,7 @@ Desktop.ini
 # Environment
 .env
 .env.example
+*.db
+*.sqlite
+node_modules/
+.checkpoints/
