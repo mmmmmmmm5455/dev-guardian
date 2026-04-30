@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "last_updated": "2026-04-30T02:30:00",
+  "version": "2.0.0",
+  "last_updated": "2026-05-01T00:00:00",
   "categories": {
     "gitignore": "1. .gitignore 完整性",
     "hardcode": "2. 硬編碼問題",
@@ -9,7 +9,9 @@
     "git": "5. Git 使用方式",
     "secret": "6. 敏感資訊洩漏",
     "frontend": "7. 前端程式碼品質",
-    "container": "8. 容器/CI 安全性"
+    "container": "8. 容器/CI 安全性",
+    "lint": "9. 程式碼品質 (Lint)",
+    "license": "10. 授權與合規"
   },
   "checks": [
     {
@@ -345,6 +347,62 @@
       "severity": "medium",
       "check_command": "test -f Dockerfile && (test -f .dockerignore && echo PASS || echo MISSING) || echo NO_DOCKERFILE",
       "fix_suggestion": "建立 .dockerignore，至少排除 .git/、node_modules/、__pycache__/、*.log、.env*"
+    },
+    {
+      "id": "LINT-001",
+      "category": "lint",
+      "name": "未使用的 Python import",
+      "severity": "medium",
+      "check_command": "grep -rn '^import \\|^from ' --include='*.py' . 2>/dev/null | sed 's/:#.*//' | sort | uniq -c | grep '^\\s*1' | head -5 || echo PASS",
+      "fix_suggestion": "移除未使用的 import，使用 `autoflake --remove-all-unused-imports` 或 `ruff check --fix`"
+    },
+    {
+      "id": "LINT-002",
+      "category": "lint",
+      "name": "Python 裸 except（無例外類型）",
+      "severity": "high",
+      "check_command": "grep -rn 'except:' --include='*.py' . 2>/dev/null | grep -v 'except Exception' | grep -v '# noqa' || echo PASS",
+      "fix_suggestion": "改為 `except Exception:` 或指定具體例外類型；裸 except 會攔截 KeyboardInterrupt 和 SystemExit"
+    },
+    {
+      "id": "LINT-003",
+      "category": "lint",
+      "name": "Python mutable default arguments",
+      "severity": "high",
+      "check_command": "grep -rnE 'def \\w+\\([^)]*=\\s*[\\[\\{]' --include='*.py' . 2>/dev/null || echo PASS",
+      "fix_suggestion": "改用 None 作為 default，在函數體內初始化：`def fn(lst=None): lst = lst or []`"
+    },
+    {
+      "id": "LINT-004",
+      "category": "lint",
+      "name": "JavaScript var 使用（應改用 let/const）",
+      "severity": "medium",
+      "check_command": "grep -rnE '\\bvar\\s+\\w+\\s*=' --include='*.js' --include='*.ts' . 2>/dev/null | grep -v 'node_modules/' | head -10 || echo PASS",
+      "fix_suggestion": "var → let（可變）或 const（不可變）；let/const 有區塊作用域，var 只有函數/全域作用域"
+    },
+    {
+      "id": "LINT-005",
+      "category": "lint",
+      "name": "JavaScript == 使用（應改用 ===）",
+      "severity": "medium",
+      "check_command": "grep -rnE '[^=!]==[^=]' --include='*.js' --include='*.ts' . 2>/dev/null | grep -v 'node_modules/' | head -10 || echo PASS",
+      "fix_suggestion": "== → ===，!= → !==；避免 JavaScript 自動型別強制轉換造成的隱晦 bug"
+    },
+    {
+      "id": "FRONTEND-002",
+      "category": "frontend",
+      "name": "console.log 殘留在生產程式碼中",
+      "severity": "low",
+      "check_command": "grep -rn 'console\\.\\(log\\|debug\\|warn\\)' --include='*.js' --include='*.ts' --include='*.jsx' --include='*.tsx' . 2>/dev/null | grep -v 'node_modules/' | grep -v '\\.test\\.' | grep -v '\\.spec\\.' | head -10 || echo PASS",
+      "fix_suggestion": "移除 console.log/debug/warn 或改用正式 logging 機制（如 winston、pino）"
+    },
+    {
+      "id": "LICENSE-001",
+      "category": "license",
+      "name": "缺少 LICENSE 檔案",
+      "severity": "high",
+      "check_command": "ls LICENSE* LICENCE* COPYING* 2>/dev/null | head -1 || echo MISSING",
+      "fix_suggestion": "加入 LICENSE 檔案（MIT/Apache 2.0/GPL）；可在 GitHub repo 設定中自動產生"
     }
   ]
 }
