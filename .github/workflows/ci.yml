@@ -1,0 +1,35 @@
+name: CI — code-audit-suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate skill files
+        shell: bash
+        run: |
+          echo "Checking skill structure..."
+          for d in code-audit skill-tester; do
+            if [[ -f "$d/SKILL.md" ]]; then
+              echo "  $d/SKILL.md exists"
+            else
+              echo "  FAIL: $d/SKILL.md missing"
+              exit 1
+            fi
+          done
+          echo "All skill files present"
+      - name: Validate LICENSE
+        shell: bash
+        run: |
+          if grep -q "MIT" LICENSE; then
+            echo "LICENSE: MIT confirmed"
+          else
+            echo "FAIL: LICENSE not MIT"
+            exit 1
+          fi
