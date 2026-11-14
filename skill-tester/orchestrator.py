@@ -70,9 +70,13 @@ def validate_json_file(filepath, schema_name=None):
         return True, f"Valid Agent 1 output — {data.get('total_found', 0)} skills found"
 
     if "agent2_output" in str(filepath) or "execution_" in str(filepath):
+        if not isinstance(data, dict):
+            return False, "Agent 2 output must be a JSON object"
         if "results" not in data:
             return False, "Missing 'results' array"
-        return True, f"Valid Agent 2 output — {len(data.get('results', []))} results"
+        if not isinstance(data["results"], list):
+            return False, "'results' must be an array"
+        return True, f"Valid Agent 2 output — {len(data['results'])} results"
 
     if "agent3_output" in str(filepath) or "repair_" in str(filepath):
         required = ["repair_id", "repairs_applied", "unfixable_issues", "total_fixed", "total_unfixable"]
@@ -287,7 +291,7 @@ def cmd_validate(args):
             all_ok = False
 
     # Cross-validation if both agent2 and agent3 outputs provided
-    if args.cross_check and len(args.files) >= 2:
+    if all_ok and args.cross_check and len(args.files) >= 2:
         issues = validate_outputs_consistency(args.files[0], args.files[1])
         for issue in issues:
             print(f"[CROSS-CHECK ISSUE] {issue}")
