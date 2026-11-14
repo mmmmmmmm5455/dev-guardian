@@ -33,3 +33,18 @@ jobs:
             echo "FAIL: LICENSE not MIT"
             exit 1
           fi
+
+  unittest:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile orchestrator
+        run: python -m py_compile skill-tester/orchestrator.py
+      - name: Run unittest contracts
+        run: python -m unittest discover -s skill-tester -p "test_*.py" -v
